@@ -1,0 +1,30 @@
+[project]
+name = "wallet-service"
+version = "1.0.0"
+description = "Async REST API for user wallets"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+extend-exclude = ["migrations/script.py.mako"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors (PEP8)
+    "W",   # pycodestyle warnings (PEP8)
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "ASYNC",
+    "SIM",
+    "RUF",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
