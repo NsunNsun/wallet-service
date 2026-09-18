@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Lint, tests and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint (ruff) and tests (pytest) in Docker
+        run: docker compose --profile test run --build --rm tests
+
+      - name: Start the whole system with one command
+        run: docker compose up -d --build
+
+      - name: Smoke test the API
+        run: |
+          set -eu
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health; then
+              break
+            fi
+            sleep 2
+          done
+          echo
+
+          wallet_id=$(curl -fsS -X POST http://localhost:8000/api/v1/wallets \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["wallet_id"])')
+          echo "Created wallet $wallet_id"
+
+          curl -fsS -X POST \
+            "http://localhost:8000/api/v1/wallets/$wallet_id/operation" \
+            -H "Content-Type: application/json" \
+            -d '{"operation_type": "DEPOSIT", "amount": 1000}'
+          echo
+
+          balance=$(curl -fsS "http://localhost:8000/api/v1/wallets/$wallet_id" \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["balance"])')
+          echo "Balance: $balance"
+          test "$balance" = "1000.00"
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop containers
+        if: always()
+        run: docker compose --profile test down -v

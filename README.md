@@ -1,5 +1,7 @@
 # Wallet Service
 
+[![CI](https://github.com/NsunNsun/wallet-service/actions/workflows/ci.yml/badge.svg)](https://github.com/NsunNsun/wallet-service/actions/workflows/ci.yml)
+
 Асинхронный REST API для работы с балансом кошельков пользователей.
 
 **Стек:** Python 3.12, FastAPI, SQLAlchemy 2.0 (async) + asyncpg,
@@ -24,13 +26,17 @@ docker compose up --build
 ### Тесты
 
 ```bash
-docker compose --profile test run --rm tests
+docker compose --profile test run --build --rm tests
 ```
 
 Запускает ruff (проверка PEP8 и форматирования) и pytest против настоящего
 PostgreSQL из compose. Тесты создают отдельную базу `<POSTGRES_DB>_test`
 и накатывают на неё реальные миграции Alembic (upgrade → downgrade →
 upgrade), так что миграции тоже проверяются.
+
+Те же проверки автоматически запускаются в GitHub Actions при каждом push
+(`.github/workflows/ci.yml`): линтер, тесты и smoke-тест — система
+поднимается через `docker compose up` и отвечает на запросы к API.
 
 ## API
 
